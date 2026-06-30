@@ -1,0 +1,9 @@
+event_time,event_type,product_id,category_id,category_code,brand,price,user_id,user_session
+2019-10-01 00:00:00 UTC,view,100,10,electronics.laptop,acme,999.00,u1,s1
+2019-10-01 00:01:00 UTC,cart,100,10,electronics.laptop,acme,999.00,u1,s1
+2019-10-01 00:02:00 UTC,view,100,10,electronics.laptop,acme,999.00,u2,s2
+2019-10-01 00:03:00 UTC,cart,100,10,electronics.laptop,acme,999.00,u2,s2
+2019-10-01 00:04:00 UTC,purchase,100,10,electronics.laptop,acme,999.00,u2,s2
+2019-10-01 00:06:00 UTC,view,200,20,electronics.audio,sonic,79.00,u3,s3
+2019-10-01 00:07:00 UTC,cart,200,20,electronics.audio,sonic,79.00,u3,s3
+2019-10-01 00:20:00 UTC,view,200,20,electronics.audio,sonic,79.00,u4,s4

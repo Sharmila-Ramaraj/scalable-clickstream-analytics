@@ -1,0 +1,3 @@
+configuration,partitions,initial_workers,input_events,input_size_mb,duration_seconds,speedup
+Sequential reference,1,2,999825,290,70,1.000
+Parallel execution,8,2,999825,290,58,1.207

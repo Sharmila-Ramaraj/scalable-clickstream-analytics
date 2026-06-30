@@ -1,0 +1,16 @@
+[
+  {
+    "product_id": "100",
+    "avg_views_5m": 1.5,
+    "avg_carts_5m": 1.0,
+    "avg_purchases_5m": 0.5,
+    "avg_trend_score_5m": 7.0
+  },
+  {
+    "product_id": "200",
+    "avg_views_5m": 0.3,
+    "avg_carts_5m": 0.0,
+    "avg_purchases_5m": 0.0,
+    "avg_trend_score_5m": 0.3
+  }
+]
