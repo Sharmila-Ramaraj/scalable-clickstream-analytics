@@ -23,7 +23,7 @@ ASSETS = ROOT / "output" / "assets"
 REPORT_PATH = OUT_DOCX / "X24244066_Clickstream_Analytics_Report.docx"
 ARCH_PATH = ASSETS / "clickstream_architecture.png"
 PERF_PATH = ASSETS / "emr_performance_report.png"
-DASHBOARD_PATH = ASSETS / "dashboard_3d.png"
+DASHBOARD_PATH = ASSETS / "dashboard_student.png"
 
 INK = RGBColor(0x12, 0x18, 0x26)
 MUTED = RGBColor(0x4B, 0x55, 0x63)
@@ -243,6 +243,24 @@ def add_figure(doc, path, width, cap):
     caption(doc, cap)
 
 
+def add_cropped_figure(doc, path, width, height, cap, *, left, top, right, bottom):
+    """Insert a picture cropped to a percentage-based source rectangle."""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(3)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.keep_together = True
+    shape = p.add_run().add_picture(str(path), width=Inches(width), height=Inches(height))
+    blip_fill = shape._inline.graphic.graphicData.pic.blipFill
+    src_rect = OxmlElement("a:srcRect")
+    src_rect.set("l", str(int(left * 1000)))
+    src_rect.set("t", str(int(top * 1000)))
+    src_rect.set("r", str(int(right * 1000)))
+    src_rect.set("b", str(int(bottom * 1000)))
+    blip_fill.insert(1, src_rect)
+    caption(doc, cap)
+
+
 def cell_margins(cell, top=55, start=70, bottom=55, end=70):
     tc = cell._tc
     tcPr = tc.get_or_add_tcPr()
@@ -414,7 +432,7 @@ def build_report():
     r = p.add_run("Abstract-")
     set_run(r, size=9, bold=True, italic=True)
     abstract = (
-        " E-commerce teams need historical context and current behaviour at the same time. This project implements a reproducible AWS Lambda architecture that replays a public REES46 electronics clickstream into Amazon Kinesis, processes recent events with AWS Lambda, stores minute aggregates in DynamoDB, and computes historical five-minute product baselines with PySpark on Amazon EMR. A Python serving layer and responsive web dashboard merge both views to identify unusually trending products and quantify funnel drop-off. From 200,000 source rows, 199,965 valid events were normalised; five S3 copies produced a 999,825-event, approximately 290 MB benchmark. On the same two-worker EMR cluster, the one-partition reference completed in 70 s and the eight-partition run in 58 s, a 1.207x speedup and 17.1% lower duration. A deterministic live test verified Kinesis-to-Lambda processing and produced the expected DynamoDB window rows. The results demonstrate the analytical value of combining recent activity with historical norms while showing that fixed Spark and storage overheads limit speedup on modest inputs."
+        " E-commerce teams need historical context and current behaviour at the same time. This project implements a reproducible AWS Lambda architecture that replays a public REES46 electronics clickstream into Amazon Kinesis, processes recent events with AWS Lambda, stores minute aggregates in DynamoDB, and computes historical five-minute product baselines with PySpark on Amazon EMR. A Python serving layer and public AWS-hosted dashboard merge both views to identify unusually trending products and quantify funnel drop-off. From 200,000 source rows, 199,965 valid events were normalised; five S3 copies produced a 999,825-event, approximately 290 MB benchmark. On the same two-worker EMR cluster, the one-partition reference completed in 70 s and the eight-partition run in 58 s, a 1.207x speedup and 17.1% lower duration. A deterministic live test verified Kinesis-to-Lambda processing and produced the expected DynamoDB window rows. The results demonstrate the analytical value of combining recent activity with historical norms while showing that fixed Spark and storage overheads limit speedup on modest inputs."
     )
     r = p.add_run(abstract)
     set_run(r, size=9)
@@ -465,7 +483,7 @@ def build_report():
     heading(doc, "IV. System Architecture")
     add_figure(doc, ARCH_PATH, 3.42, "Fig. 1. Implemented batch, speed and serving paths.")
     body(doc, "The producer normalises the historical CSV.GZ file into canonical JSON, preserves the source timestamp and assigns a replay-clock event time. Session ID is the Kinesis partition key, preserving per-session order within a shard. The live branch invokes a Python Lambda and uses atomic DynamoDB updates for product and health counters in one-minute buckets with time-to-live expiry. The historical branch stores canonical input in S3, where EMR Spark aggregates five-minute windows and writes Parquet plus consolidated JSON baselines.", first=True)
-    body(doc, "The serving module reads the recent view and historical product rows, calculates lift, orders products by relative change, and returns a JSON analytical view. A responsive web dashboard presents the same verified values as product activity, a three-stage funnel, service status and batch-performance panels. Its 3D animation is a presentation aid only and does not alter the analytical result. CloudWatch and retained EMR logs provide operational evidence.")
+    body(doc, "The serving module reads the recent view and historical product rows, calculates lift, orders products by relative change, and returns a JSON analytical view. A responsive static dashboard on an Amazon S3 website presents the same verified values as product activity, a three-stage funnel, service status and batch-performance panels. CloudWatch and retained EMR logs provide operational evidence.")
 
     heading(doc, "V. Implementation")
     subheading(doc, "A. Reproducible Ingestion")
@@ -476,7 +494,7 @@ def build_report():
 
     subheading(doc, "C. Speed and Serving Layers")
     body(doc, "The Kinesis event-source mapping invokes the Lambda in batches. For each supported event the function increments the corresponding DynamoDB attribute and a health row containing event count and accumulated processing latency. Partial batch failure identifiers are returned so failed Kinesis records can be retried. The deterministic eight-event fixture produced three rows: two product aggregates and one health row.", first=True)
-    body(doc, "The local stateful implementation maintains an exact five-minute deque and session counters for repeatable tests; the AWS Lambda persists equivalent one-minute buckets. The serving merge combines the latest buckets with batch averages, allowing recent counts to be interpreted in context. The approved StreamCart dashboard includes trend and AWS-flow views, pauseable motion, 3D funnel stages and raised performance bars while retaining plain numerical labels for reproducible interpretation.")
+    body(doc, "The local stateful implementation maintains an exact five-minute deque and session counters for repeatable tests; the AWS Lambda persists equivalent one-minute buckets. The serving merge combines the latest buckets with batch averages, allowing recent counts to be interpreted in context. The student-built dashboard uses straightforward tables, progress bars and labelled funnel stages so the verified values remain easy to interpret.")
 
     subheading(doc, "D. Elasticity and Fault Handling")
     body(doc, "The EMR 7.13.0 cluster used Spark 3.5.6, one primary node, one core worker and one task worker at launch. Managed scaling was configured for a minimum of two and maximum of four worker instances, with at most one core worker. AWS documents that managed scaling evaluates cluster workload and can increase or decrease core/task capacity [5]. Lambda concurrency can expand with incoming event batches within account and event-source limits. The cluster also used a 20-minute idle-termination control and was manually terminated after measurement.", first=True)
@@ -490,8 +508,18 @@ def build_report():
     body(doc, "In the controlled serving result, product 200 scored 5 against a historical five-minute mean of 2.5. Its activity lift was 2.0, so it was flagged as unusually trending. Product 100 scored 13 against a mean of 13; lift was 1.0 and it was not flagged. Across the four view sessions, three reached cart and one reached purchase. Therefore view-to-cart drop-off was 25%, while cart-to-purchase drop-off was 66.67%. The larger immediate loss was after cart, suggesting that product/checkout friction should be investigated before adding more top-of-funnel promotion.", first=True)
 
     subheading(doc, "B. Serving Dashboard")
-    add_figure(doc, DASHBOARD_PATH, 3.28, "Fig. 2. Approved dashboard showing the verified trend signal.")
-    body(doc, "The dashboard places the real-time answer first: product 200 is shown at 2.0x activity lift, with the current score, baseline and event composition visible in the 3D signal scene. A switchable AWS-flow mode demonstrates how records move from the replay producer through Kinesis and Lambda to DynamoDB. The interface clearly labels the eight-event live fixture separately from the 999,825-event batch benchmark.", first=True)
+    add_cropped_figure(
+        doc,
+        DASHBOARD_PATH,
+        3.28,
+        2.26,
+        "Fig. 2. Public AWS dashboard with the corrected session funnel.",
+        left=15.6,
+        top=29.8,
+        right=2.7,
+        bottom=29.3,
+    )
+    body(doc, "The public S3 website places the real-time answer first: product 200 is shown at 2.0x activity lift, with its current score, baseline and event composition visible in a plain results table. The funnel keeps all three stages and both drop-off percentages readable at desktop and mobile widths. A numbered pipeline panel explains how records move from the replay producer through Kinesis and Lambda to DynamoDB.", first=True)
 
     subheading(doc, "C. Batch Performance")
     add_figure(doc, PERF_PATH, 3.42, "Fig. 3. Same-cluster partitioning comparison on EMR.")
@@ -513,10 +541,10 @@ def build_report():
     refs = [
         "[1] N. Marz and J. Warren, Big Data: Principles and Best Practices of Scalable Real-Time Data Systems. Manning, 2015.",
         "[2] M. Zaharia et al., 'Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing,' Proc. NSDI, pp. 15-28, 2012. usenix.org/conference/nsdi12/technical-sessions/presentation/zaharia",
-        "[3] Amazon Web Services, 'Tutorial: Using Lambda with Kinesis Data Streams,' AWS Lambda Developer Guide, 2026. docs.aws.amazon.com/lambda/latest/dg/with-kinesis-example.html",
-        "[4] REES46, 'Events in an electronics and home-appliance store,' Public e-commerce datasets, 2026. data.rees46.com",
-        "[5] Amazon Web Services, 'Using managed scaling in Amazon EMR,' Amazon EMR Management Guide, 2026. docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-scaling.html",
-        "[6] Apache Software Foundation, 'Structured Streaming Programming Guide, Spark 3.5.6,' 2026. spark.apache.org/docs/3.5.6/structured-streaming-programming-guide.html",
+        "[3] Amazon Web Services, 'Tutorial: Using Lambda with Kinesis Data Streams,' AWS Lambda Developer Guide. [Online]. Available: docs.aws.amazon.com/lambda/latest/dg/with-kinesis-example.html. [Accessed: Aug. 3, 2026].",
+        "[4] REES46, 'Events in an electronics and home-appliance store,' REES46 Datasets. [Online]. Available: data.rees46.com. [Accessed: Aug. 3, 2026].",
+        "[5] Amazon Web Services, 'Using managed scaling in Amazon EMR,' Amazon EMR Management Guide. [Online]. Available: docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-scaling.html. [Accessed: Aug. 3, 2026].",
+        "[6] Apache Software Foundation, 'Structured Streaming Programming Guide, Spark 3.5.6.' [Online]. Available: spark.apache.org/docs/3.5.6/structured-streaming-programming-guide.html. [Accessed: Aug. 3, 2026].",
     ]
     for ref in refs:
         p = doc.add_paragraph()
@@ -533,10 +561,17 @@ def build_report():
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
     r = p.add_run("Submission links- ")
     set_run(r, size=6.8, bold=True)
-    r = p.add_run("Repository: github.com/Sharmila-Ramaraj/scalable-clickstream-analytics  |  ")
-    set_run(r, size=6.8)
+    r = p.add_run("Repository: github.com/Sharmila-Ramaraj/scalable-clickstream-analytics")
+    set_run(r, size=6.6)
+
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    r = p.add_run("AWS dashboard: http://scalable-real-time-clickstream-analytics-x24244066.s3-website-us-east-1.amazonaws.com  |  ")
+    set_run(r, size=6.0)
     r = p.add_run("Video: [INSERT YOUTUBE OR ONEDRIVE URL]")
-    set_run(r, size=6.8)
+    set_run(r, size=6.0)
     shade_run(r)
 
     core = doc.core_properties

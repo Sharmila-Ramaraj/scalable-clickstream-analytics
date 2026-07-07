@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterable, Iterator, Protocol, TextIO
+from typing import Any, Iterable, Iterator, Protocol, TextIO
 
 from .models import ClickEvent
 
@@ -34,22 +34,35 @@ class JsonLinesSink:
 class KinesisSink:
     """Small buffered Kinesis producer; records are partitioned by session."""
 
-    def __init__(self, stream_name: str, region: str | None = None, batch_size: int = 100) -> None:
-        try:
-            import boto3
-        except ImportError as exc:  # pragma: no cover - depends on optional package
-            raise RuntimeError("Install the 'aws' project extra to use Kinesis") from exc
-        self.client = boto3.client("kinesis", region_name=region)
+    def __init__(
+        self,
+        stream_name: str,
+        region: str | None = None,
+        batch_size: int = 100,
+        experiment_id: str | None = None,
+        client: Any | None = None,
+    ) -> None:
+        if client is None:
+            try:
+                import boto3
+            except ImportError as exc:  # pragma: no cover - depends on optional package
+                raise RuntimeError("Install the 'aws' project extra to use Kinesis") from exc
+            client = boto3.client("kinesis", region_name=region)
+        self.client = client
         self.stream_name = stream_name
         self.batch_size = batch_size
+        self.experiment_id = experiment_id
         self.records: list[dict[str, bytes | str]] = []
 
     def send(self, event: ClickEvent) -> None:
+        payload = event.to_dict()
+        if self.experiment_id:
+            payload["experiment_id"] = self.experiment_id
         self.records.append(
             {
                 # Newline-delimited JSON remains directly readable when Data Firehose
                 # concatenates Kinesis records into buffered S3 objects.
-                "Data": (json.dumps(event.to_dict(), separators=(",", ":")) + "\n").encode(
+                "Data": (json.dumps(payload, separators=(",", ":")) + "\n").encode(
                     "utf-8"
                 ),
                 "PartitionKey": event.session_id,
@@ -61,7 +74,10 @@ class KinesisSink:
     def _flush(self) -> None:
         if not self.records:
             return
-        response = self.client.put_records(StreamName=self.stream_name, Records=self.records)
+        response = self.client.put_records(
+            StreamName=self.stream_name,
+            Records=list(self.records),
+        )
         failures = int(response.get("FailedRecordCount", 0))
         if failures:
             raise RuntimeError(f"Kinesis rejected {failures} record(s); replay stopped")
@@ -142,6 +158,10 @@ def build_parser() -> argparse.ArgumentParser:
     output.add_argument("--output", type=Path, help="Write canonical JSONL to this file")
     output.add_argument("--kinesis-stream", help="Send records to this Kinesis stream")
     parser.add_argument("--region", help="AWS region for Kinesis")
+    parser.add_argument(
+        "--experiment-id",
+        help="Optional label included in Kinesis records for repeatable load measurements",
+    )
     return parser
 
 
@@ -149,7 +169,11 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     output_stream: TextIO | None = None
     if args.kinesis_stream:
-        sink: Sink = KinesisSink(args.kinesis_stream, region=args.region)
+        sink: Sink = KinesisSink(
+            args.kinesis_stream,
+            region=args.region,
+            experiment_id=args.experiment_id,
+        )
     elif args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         output_stream = args.output.open("w", encoding="utf-8")

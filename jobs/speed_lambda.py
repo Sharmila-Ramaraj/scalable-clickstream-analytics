@@ -51,12 +51,15 @@ def _update_product(event: dict, event_time: datetime) -> None:
     )
 
 
-def _update_health(event_time: datetime) -> None:
+def _update_health(event_time: datetime, experiment_id: str | None = None) -> int:
     now = datetime.now(timezone.utc)
     latency_ms = max(0, int((now - event_time).total_seconds() * 1000))
     expires_at = int((event_time + timedelta(hours=RETENTION_HOURS)).timestamp())
     TABLE.update_item(
-        Key={"PK": f"WINDOW#{_minute_bucket(event_time)}", "SK": "HEALTH"},
+        Key={
+            "PK": f"WINDOW#{_minute_bucket(event_time)}",
+            "SK": f"HEALTH#{experiment_id}" if experiment_id else "HEALTH",
+        },
         UpdateExpression=(
             "ADD EventCount :one, LatencyTotalMs :latency "
             "SET ExpiresAt = :ttl, UpdatedAt = :updated"
@@ -68,6 +71,7 @@ def _update_health(event_time: datetime) -> None:
             ":updated": now.isoformat(),
         },
     )
+    return latency_ms
 
 
 def lambda_handler(event: dict, _context: object) -> dict:
@@ -81,7 +85,19 @@ def lambda_handler(event: dict, _context: object) -> dict:
                 raise ValueError("unsupported event_type")
             event_time = _time(click["event_time"])
             _update_product(click, event_time)
-            _update_health(event_time)
+            experiment_id = click.get("experiment_id")
+            latency_ms = _update_health(event_time, experiment_id)
+            print(
+                json.dumps(
+                    {
+                        "metric": "clickstream_processing_latency",
+                        "experiment_id": experiment_id or "unlabelled",
+                        "latency_ms": latency_ms,
+                        "event_type": click["event_type"],
+                    },
+                    separators=(",", ":"),
+                )
+            )
         except Exception:  # Lambda reports the failed sequence for retry
             failures.append({"itemIdentifier": sequence_number})
     return {"batchItemFailures": failures}

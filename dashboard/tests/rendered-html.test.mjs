@@ -2,61 +2,43 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
+const root = new URL("../", import.meta.url);
 
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-}
+test("exports the verified clickstream dashboard for AWS", async () => {
+  const html = await readFile(new URL("out/index.html", root), "utf8");
 
-test("server-renders the verified clickstream dashboard", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, /<title>StreamCart \| Real-Time Clickstream Analytics<\/title>/i);
+  assert.match(html, /<title>Scalable Real-Time Clickstream Analytics \| X24244066<\/title>/i);
   assert.match(html, /Product 200 is unusually trending/);
-  assert.match(html, /2\.0x its historical baseline/);
-  assert.match(html, /66\.67% drop-off/);
-  assert.match(html, /1\.207x/);
-  assert.match(html, /AWS data flow/);
+  assert.match(html, /activity lift of <strong>2\.0×<\/strong>/);
+  assert.match(html, /66\.67%/);
+  assert.match(html, /4 sessions/);
+  assert.match(html, /3 sessions/);
+  assert.match(html, /1 session/);
+  assert.match(html, /1\.207×/);
+  assert.match(html, /How the result is produced/);
   assert.match(html, /Sharmila Ramaraj/);
   assert.match(html, /X24244066/);
-  assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
+  assert.doesNotMatch(html, /signin-with|signout-with|Your site is taking shape/);
 });
 
-test("keeps the 3D demonstration interactive, responsive, and accessible", async () => {
+test("keeps the student dashboard readable and avoids excessive visual effects", async () => {
   const [page, layout, css, packageJson] = await Promise.all([
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/layout.tsx", root), "utf8"),
+    readFile(new URL("app/globals.css", root), "utf8"),
+    readFile(new URL("package.json", root), "utf8"),
   ]);
 
-  assert.match(page, /useState<"trend" \| "pipeline">\("trend"\)/);
-  assert.match(page, /aria-label="3D scene controls"/);
-  assert.match(page, /aria-pressed=\{running\}/);
-  assert.match(page, /Pause motion/);
-  assert.match(page, /Verified result/);
-  assert.match(page, /Same two-worker cluster/);
-  assert.match(layout, /generateMetadata/);
-  assert.match(layout, /og\.png/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(css, /@media \(max-width:\s*720px\)/);
-  assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(page, /useState\("19:39 UTC"\)/);
+  assert.match(page, /REAL-TIME ANALYTICAL ANSWER/);
+  assert.match(page, /Individual student implementation/);
+  assert.match(page, /cart-to-purchase is the larger loss/);
+  assert.match(page, /same two-worker cluster/i);
+  assert.doesNotMatch(page, /orbit|sceneMode|Pause motion/);
+  assert.match(layout, /s3-website-us-east-1\.amazonaws\.com/);
+  assert.match(css, /\.funnel-row/);
+  assert.match(css, /\.pipeline-step/);
+  assert.doesNotMatch(css, /perspective|rotateX|rotateY|rotateZ/);
+  assert.match(css, /@media \(max-width:\s*560px\)/);
+  assert.match(packageJson, /"build:aws": "next build"/);
 });

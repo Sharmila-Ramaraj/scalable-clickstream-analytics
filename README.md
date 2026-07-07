@@ -12,7 +12,7 @@ It replays the public REES46 multi-category e-commerce behaviour dataset as a li
 - **Batch layer:** PySpark calculates historical five-minute product baselines and funnel behaviour.
 - **Speed layer:** Python/Kinesis processing maintains recent minute buckets and sliding-window counts.
 - **Serving layer:** recent activity is compared with historical baselines to flag unusual trends.
-- **Presentation layer:** an interactive 3D dashboard explains the trend signal, funnel drop-off, AWS event flow, and measured batch performance.
+- **Presentation layer:** a clear student-built dashboard explains the trend signal, funnel drop-off, AWS event flow, and measured batch performance.
 - **Scaling:** EMR managed scaling was configured for 2-4 workers; Kinesis and Lambda provide elastic stream processing within the Learner Lab limits.
 
 The dataset provides `view`, `cart`, `remove_from_cart`, and `purchase` events. It does not contain a checkout-start event, so this project deliberately reports view-to-cart and cart-to-purchase drop-off—not checkout-page abandonment.
@@ -34,9 +34,10 @@ docs/
   architecture.md
   aws-deployment.md
   assessment-work-plan.md
+  load-and-scaling-experiments.md
 infrastructure.yaml  safe core AWS resources
 tests/               deterministic fixtures and automated tests
-dashboard/           interactive 3D Next.js demonstration
+dashboard/           responsive Next.js results dashboard
 benchmarks/          measured EMR timing evidence
 output/pdf/           rendered IEEE-style report
 ```
@@ -52,7 +53,7 @@ The deterministic live replay contained eight events across two products and fou
 
 For batch performance, five S3-side copies of the 199,965-event canonical subset produced a **999,825-event (~290 MB)** input. On the same two-worker EMR cluster, one partition completed in **70 seconds** and eight partitions in **58 seconds**: a **1.207x speedup** and **17.1% lower duration**. This is a controlled partitioning comparison, not proof of worker auto-scaling.
 
-![Approved 3D clickstream dashboard](output/assets/dashboard_3d.png)
+![Clickstream analytics dashboard](output/assets/dashboard_student.png)
 
 ## Run the dashboard
 
@@ -62,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The display includes a pauseable 3D trend scene, a switchable AWS-flow explanation, the three-stage funnel, and raised benchmark bars. The motion is a presentation aid; all numerical labels come from the verified experiment.
+Open [http://localhost:3000](http://localhost:3000). The display includes the verified trend answer, a product comparison table, the three-stage funnel, a simple benchmark chart, and a numbered AWS-flow explanation. All numerical labels come from the verified experiment.
 
 ## Run the local demonstration
 
@@ -115,7 +116,16 @@ REES46 publishes anonymised e-commerce behaviour data with product views, catego
 - Core Kinesis, Lambda, DynamoDB, S3, and EMR resources were deployed in the AWS Academy Learner Lab.
 - The deterministic cloud replay and DynamoDB serving evidence were verified.
 - The 999,825-event EMR sequential/parallel benchmark was completed.
-- Seven automated Python tests and the dashboard render test pass locally.
+- Eight automated Python tests and two dashboard production checks pass locally.
 - The IEEE-style report and approved dashboard are included.
 
 The main experimental limitation is that managed scaling was configured but the 58-70 second jobs did not sustain demand long enough to demonstrate an observed worker scale-out. A longer repeated backlog test is the next recommended experiment.
+
+The repeatable commands for the three-rate latency test, EMR worker-count monitor, and speedup-versus-worker-count plot are in [Controlled load and auto-scaling experiments](docs/load-and-scaling-experiments.md). Result claims must not be added until those commands have run inside an active Learner Lab session.
+
+## Live AWS dashboard and implementation guide
+
+- **Public dashboard (no sign-in):** [Scalable Real-Time Clickstream Analytics — X24244066](http://scalable-real-time-clickstream-analytics-x24244066.s3-website-us-east-1.amazonaws.com)
+- **Reproduce the complete project:** [From-scratch implementation guide](docs/from-scratch-implementation-guide.md)
+
+The title-based URL is an Amazon S3 static website in `us-east-1` and can be opened by an assessor without signing in.
