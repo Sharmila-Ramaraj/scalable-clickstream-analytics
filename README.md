@@ -122,10 +122,3 @@ REES46 publishes anonymised e-commerce behaviour data with product views, catego
 The main experimental limitation is that managed scaling was configured but the 58-70 second jobs did not sustain demand long enough to demonstrate an observed worker scale-out. A longer repeated backlog test is the next recommended experiment.
 
 The repeatable commands for the three-rate latency test, EMR worker-count monitor, and speedup-versus-worker-count plot are in [Controlled load and auto-scaling experiments](docs/load-and-scaling-experiments.md). Result claims must not be added until those commands have run inside an active Learner Lab session.
-
-## Live AWS dashboard and implementation guide
-
-- **Public dashboard (no sign-in):** [Scalable Real-Time Clickstream Analytics — X24244066](http://scalable-real-time-clickstream-analytics-x24244066.s3-website-us-east-1.amazonaws.com)
-- **Reproduce the complete project:** [From-scratch implementation guide](docs/from-scratch-implementation-guide.md)
-
-The title-based URL is an Amazon S3 static website in `us-east-1` and can be opened by an assessor without signing in.

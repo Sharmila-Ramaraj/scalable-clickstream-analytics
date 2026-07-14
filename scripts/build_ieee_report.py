@@ -541,10 +541,10 @@ def build_report():
     refs = [
         "[1] N. Marz and J. Warren, Big Data: Principles and Best Practices of Scalable Real-Time Data Systems. Manning, 2015.",
         "[2] M. Zaharia et al., 'Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing,' Proc. NSDI, pp. 15-28, 2012. usenix.org/conference/nsdi12/technical-sessions/presentation/zaharia",
-        "[3] Amazon Web Services, 'Tutorial: Using Lambda with Kinesis Data Streams,' AWS Lambda Developer Guide. [Online]. Available: docs.aws.amazon.com/lambda/latest/dg/with-kinesis-example.html. [Accessed: Aug. 3, 2026].",
-        "[4] REES46, 'Events in an electronics and home-appliance store,' REES46 Datasets. [Online]. Available: data.rees46.com. [Accessed: Aug. 3, 2026].",
-        "[5] Amazon Web Services, 'Using managed scaling in Amazon EMR,' Amazon EMR Management Guide. [Online]. Available: docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-scaling.html. [Accessed: Aug. 3, 2026].",
-        "[6] Apache Software Foundation, 'Structured Streaming Programming Guide, Spark 3.5.6.' [Online]. Available: spark.apache.org/docs/3.5.6/structured-streaming-programming-guide.html. [Accessed: Aug. 3, 2026].",
+        "[3] Amazon Web Services, 'Using Lambda to process records from Amazon Kinesis Data Streams,' AWS Lambda Developer Guide, n.d. [Online]. Available: docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html. [Accessed: Aug. 3, 2026].",
+        "[4] REES46, 'Events in an electronics and home-appliance store,' REES46 Datasets, n.d. [Dataset]. Available: data.rees46.com. [Accessed: Aug. 3, 2026].",
+        "[5] Amazon Web Services, 'Using managed scaling in Amazon EMR,' Amazon EMR Management Guide, n.d. [Online]. Available: docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-scaling.html. [Accessed: Aug. 3, 2026].",
+        "[6] Apache Software Foundation, 'Structured Streaming Programming Guide, Spark 3.5.6,' 2025. [Online]. Available: spark.apache.org/docs/3.5.6/structured-streaming-programming-guide.html. [Accessed: Aug. 3, 2026].",
     ]
     for ref in refs:
         p = doc.add_paragraph()
