@@ -2,6 +2,17 @@
 
 This guide intentionally separates code that can be verified locally from steps that require an active Learner Lab session. Use the region, account number, `LabRole` ARN, and service permissions shown in your own lab.
 
+## Low-storage CloudShell dashboard deployment
+
+AWS CloudShell provides limited persistent storage. The repository therefore includes a verified prebuilt static dashboard package so deployment does not require installing Node packages in CloudShell:
+
+```bash
+chmod +x scripts/deploy_prebuilt_dashboard_s3.sh
+./scripts/deploy_prebuilt_dashboard_s3.sh
+```
+
+The script uploads `deploy/dashboard-static.zip` to the existing public S3 website bucket. Rebuild that archive locally after any dashboard source change; do not treat an older archive as current.
+
 ## 1. Start the lab and record configuration
 
 Record these values in a private local note; do not commit temporary credentials:
