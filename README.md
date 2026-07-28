@@ -2,6 +2,7 @@
 
 **Student:** Sharmila Ramaraj (X24244066)
 **Module:** Scalable Cloud Programming, National College of Ireland
+**Live dashboard:** [AWS-hosted clickstream analytics](http://scalable-real-time-clickstream-analytics-x24244066.s3-website-us-east-1.amazonaws.com)
 
 This project answers one operational question:
 
@@ -53,7 +54,23 @@ The deterministic live replay contained eight events across two products and fou
 
 For batch performance, five S3-side copies of the 199,965-event canonical subset produced a **999,825-event (~290 MB)** input. On the same two-worker EMR cluster, one partition completed in **70 seconds** and eight partitions in **58 seconds**: a **1.207x speedup** and **17.1% lower duration**. This is a controlled partitioning comparison, not proof of worker auto-scaling.
 
-![Clickstream analytics dashboard](output/assets/dashboard_student.png)
+## Dashboard interface
+
+The presentation is organised as four clickable views. The overview answers the business question first; the remaining tabs separate the recent speed view, historical batch evidence, and the merged serving result.
+
+![Dashboard overview with clickable analytical layers](output/assets/dashboard_overview.png)
+
+### Speed Layer
+
+![Current clickstream activity and session funnel](output/assets/dashboard_speed_layer.png)
+
+### Batch Layer
+
+![Historical dataset preparation and PySpark benchmark](output/assets/dashboard_batch_layer.png)
+
+### Serving Layer
+
+![Merged current and historical product activity](output/assets/dashboard_serving_layer.png)
 
 ## Run the dashboard
 
@@ -63,7 +80,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The display includes the verified trend answer, a product comparison table, the three-stage funnel, a simple benchmark chart, and a numbered AWS-flow explanation. All numerical labels come from the verified experiment.
+Open [http://localhost:3000](http://localhost:3000). Use the Overview, Speed Layer, Batch Layer, and Serving Layer tabs to move between the verified trend answer, session funnel, PySpark benchmark, and batch-plus-speed merge. All numerical labels come from the verified experiment.
 
 ## Run the local demonstration
 

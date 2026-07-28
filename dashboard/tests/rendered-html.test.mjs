@@ -15,9 +15,11 @@ test("exports the verified clickstream dashboard for AWS", async () => {
   assert.match(html, /3 sessions/);
   assert.match(html, /1 session/);
   assert.match(html, /1\.207×/);
-  assert.match(html, /How the result is produced/);
-  assert.match(html, /Sharmila Ramaraj/);
-  assert.match(html, /X24244066/);
+  assert.match(html, /Speed Layer/);
+  assert.match(html, /Batch Layer/);
+  assert.match(html, /Serving Layer/);
+  assert.doesNotMatch(html, /SCALABLE CLOUD PROGRAMMING · AWS ACADEMY LEARNER LAB/);
+  assert.doesNotMatch(html, /Sharmila Ramaraj · X24244066/);
   assert.doesNotMatch(html, /signin-with|signout-with|Your site is taking shape/);
 });
 
@@ -31,14 +33,16 @@ test("keeps the student dashboard readable and avoids excessive visual effects",
 
   assert.match(page, /useState\("19:39 UTC"\)/);
   assert.match(page, /REAL-TIME ANALYTICAL ANSWER/);
-  assert.match(page, /Individual student implementation/);
+  assert.match(page, /activeLayer/);
+  assert.match(page, /aria-selected/);
   assert.match(page, /cart-to-purchase is the larger loss/);
   assert.match(page, /same two-worker cluster/i);
   assert.doesNotMatch(page, /orbit|sceneMode|Pause motion/);
   assert.match(layout, /s3-website-us-east-1\.amazonaws\.com/);
   assert.match(css, /\.funnel-row/);
-  assert.match(css, /\.pipeline-step/);
+  assert.match(css, /\.layer-nav/);
+  assert.match(css, /\.merge-flow/);
   assert.doesNotMatch(css, /perspective|rotateX|rotateY|rotateZ/);
-  assert.match(css, /@media \(max-width:\s*560px\)/);
+  assert.match(css, /@media \(max-width:\s*620px\)/);
   assert.match(packageJson, /"build:aws": "next build"/);
 });

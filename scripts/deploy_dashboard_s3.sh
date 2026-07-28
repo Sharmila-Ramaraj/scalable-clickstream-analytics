@@ -46,6 +46,7 @@ aws s3 website "s3://${TASK_BUCKET_NAME}" \
 echo "[4/5] Uploading the production files"
 aws s3 sync out "s3://${TASK_BUCKET_NAME}" \
   --delete \
+  --cache-control "no-cache, no-store, must-revalidate" \
   --region "${TASK_REGION}"
 
 echo "[5/5] Deployment complete"

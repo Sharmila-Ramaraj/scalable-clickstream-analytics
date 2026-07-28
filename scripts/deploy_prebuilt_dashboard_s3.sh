@@ -23,6 +23,7 @@ unzip -q "${TASK_ARCHIVE}" -d "${TASK_TEMP_DIR}"
 echo "Uploading the prebuilt student dashboard"
 aws s3 sync "${TASK_TEMP_DIR}" "s3://${TASK_BUCKET_NAME}" \
   --delete \
+  --cache-control "no-cache, no-store, must-revalidate" \
   --region "${TASK_REGION}"
 
 echo "Deployment complete"
